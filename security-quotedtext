@@ -1,0 +1,84 @@
+Title
+=====
+
+Message Threading v Security:
+Why Quoted Text in PGP Email Replies Should Be Off by Default
+
+Abstract
+========
+
+We show that including quoted text in encrypted emails' replies presents 
+a privacy hazard under certain attack scenarios. However, quoted text is 
+not required by any specification, and fortunately the UX advantages 
+that it presents (keeping track of conversations) are easily replicated 
+using an at-rest approach (well-tested in gmail's "conversation view"), 
+without the detriment to security. We therefore recommend making "quoted 
+text" off by default in email clients' PGP mode.
+
+Attack Scenario
+===============
+
+Two endpoints are in regular email communication using PGP. Alice is 
+extra paranoid and secures her private key well. Bob, however, is less 
+careful, and Eve steals his. It is a quick operation: To avoid later 
+detection, Eve leaves no malware on Bob's endpoint to phone home the 
+plaintext of his outgoing mails. However, she controls the network and 
+intercepts traffic in transit. She is now able to decrypt all A->B 
+messages but not B->A traffic (though she can spoof it).
+
+Ironically, when Bob's key is revealed, Alice is the one who loses 
+privacy. It would seem that half the information is still safe, except 
+that unfortunately, the current convention for email clients is to keep 
+a copy of the previous email ("quoted text") in each reply. This opens 
+the rest of the messages to observation by a passive attacker granted 
+only one side's key.
+
+There are a number of widely deployed email clients supporting PGP, and 
+it is unreasonable to expect that everyone who runs such a client is a 
+security expert. Some instances will be running on improperly 
+administered computers, and improper operational security practices 
+will, doubtless, be employed. Some keys will inevitably leak. The fewer 
+people whose privacy is compromised, the better.
+
+Fortunately, this damage can be partially mitigated with only a slight 
+change of convention.
+
+Mitigation
+==========
+
+The original purpose of quoted text was to aid in keeping track of 
+conversations. This is no longer necessary: As gmail demonstrated early 
+in its development, the same UX can be achieved if the mail client 
+automatically displays all emails of a conversation thread on a single 
+page, in a format that mimics the quoted text structure.
+
+Interestingly, in deference to tradition, gmail still includes quoted 
+text by default, but hides it because in this system it is clearly 
+redundant. In combination with the security considerations, this would 
+suggest it's time for a change.
+
+Plus, regardless of privacy, a client shouldn't be storing and 
+transmitting redundant copies of data.
+
+Technical Details
+=================
+
+Mail clients that thread messages can use the In-Reply-To or 
+References headers. JWZ provides an excellent treatment here:
+http://www.jwz.org/doc/threading.html
+
+This is, however, metadata, which one may not want to leak. Since 
+these headers' specifications are very loose, the headers can actually 
+be left blank. Instead, a similar identifier can be encrypted inside a 
+PGP block, as part of a custom encrypted header. This hides conversation 
+structure from a passive network-controlling attacker.
+
+Conclusion
+==========
+
+When used with PGP email, quoted text increases the amount of 
+information retrieved by a passive attacker following a single key 
+compromise. We therefore recommend that quoted text should be off by 
+default in PGP mode (opt-in). We suggest leveraging proper minimalistic 
+threading technique instead, for keeping track of conversation flow 
+(either using existing headers or devising new encrypted ones).
